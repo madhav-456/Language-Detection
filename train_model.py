@@ -2,27 +2,19 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 import pickle
-import os
-
-# Check current folder
-print("Current directory:", os.getcwd())
 
 # Load dataset
-df = pd.read_csv("language_dataset.csv")
+df = pd.read_csv('language_dataset.csv')
+X = df['text']  # Assuming 'text' column contains the input text
+y = df['language']  # Assuming 'language' column contains the language labels
 
-X = df["text"]
-y = df["label"]
-
-# Convert text to numeric features
+# Initialize vectorizer and classifier
 vectorizer = TfidfVectorizer()
-X_vec = vectorizer.fit_transform(X)
+X_tfidf = vectorizer.fit_transform(X)
 
-# Train classifier
-model = LogisticRegression(max_iter=500)
-model.fit(X_vec, y)
+classifier = LogisticRegression()
+classifier.fit(X_tfidf, y)
 
-# Save both vectorizer and model together
-with open("lrmodel.pckl", "wb") as f:
-    pickle.dump((vectorizer, model), f)
-
-print("Model trained and saved as lrmodel.pckl ✅")
+# Save the fitted model and vectorizer
+with open('lrmodel.pckl', 'wb') as model_file:
+    pickle.dump((vectorizer, classifier), model_file)
