@@ -1,31 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>🌍 Language Detector</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Language Predictor</title>
 </head>
 <body>
-    <div class="container">
-        <h1>🌍 Language Detector</h1>
-        <form id="detectForm">
-            <textarea name="text" placeholder="Enter text here..."></textarea>
-            <button type="submit">🔍 Detect</button>
-        </form>
-        <div id="result"></div>
-    </div>
+    <h1>Language Predictor</h1>
+    <form id="predictForm">
+        <textarea name="text" id="text" rows="4" cols="50" placeholder="Enter text here"></textarea><br><br>
+        <button type="submit">Predict Language</button>
+    </form>
+    
+    <h2>Result:</h2>
+    <pre id="result"></pre>
 
     <script>
-        document.getElementById("detectForm").onsubmit = async (e) => {
+        const form = document.getElementById("predictForm");
+        const resultDiv = document.getElementById("result");
+
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            let form = new FormData(e.target);
-            let response = await fetch("/predict", {
-                method: "POST",
-                body: form
-            });
-            let data = await response.json();
-            document.getElementById("result").innerText =
-                "Detected: " + data.predicted_language;
-        };
+
+            const text = document.getElementById("text").value.trim();
+
+            if (!text) {
+                resultDiv.innerText = "Error: Please enter some text.";
+                return;
+            }
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `text=${encodeURIComponent(text)}`
+                });
+
+                const data = await response.json();
+                console.log(data); // Debug: see API response in console
+
+                if (data.error) {
+                    resultDiv.innerText = "Error: " + data.error;
+                } else {
+                    resultDiv.innerText =
+                        `Input Text: ${data.input_text}\n` +
+                        `Predicted Language: ${data.predicted_language}\n` +
+                        `Probabilities:\n${JSON.stringify(data.probabilities, null, 2)}`;
+                }
+            } catch (err) {
+                resultDiv.innerText = "Error: Could not reach server.";
+                console.error(err);
+            }
+        });
     </script>
 </body>
 </html>
