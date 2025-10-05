@@ -5,7 +5,8 @@ import os
 
 # Load the fitted vectorizer and classifier
 try:
-    with open("lrmodel.pckl", "rb") as f:
+    model_path = os.path.join(os.path.dirname(__file__), "lrmodel.pckl")
+    with open(model_path, "rb") as f:
         vectorizer, classifier = pickle.load(f)
 except FileNotFoundError:
     vectorizer = None
@@ -53,4 +54,5 @@ if __name__ == "__main__":
     # Use Render's PORT environment variable
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port,debug=false)
+
 
