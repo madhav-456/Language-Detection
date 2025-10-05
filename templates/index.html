@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🌍 Language Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Language Detector</h1>
+        <form id="detectForm">
+            <textarea name="text" placeholder="Enter text here..."></textarea>
+            <button type="submit">🔍 Detect</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById("detectForm").onsubmit = async (e) => {
+            e.preventDefault();
+            let form = new FormData(e.target);
+            let response = await fetch("/predict", {
+                method: "POST",
+                body: form
+            });
+            let data = await response.json();
+            document.getElementById("result").innerText =
+                "Detected: " + data.predicted_language;
+        };
+    </script>
+</body>
+</html>
