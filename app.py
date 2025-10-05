@@ -1,11 +1,19 @@
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 import pickle
+import os
 
 # Load the fitted vectorizer and classifier
-with open("lrmodel.pckl", "rb") as f:
-    vectorizer, classifier = pickle.load(f)
+try:
+    with open("lrmodel.pckl", "rb") as f:
+        vectorizer, classifier = pickle.load(f)
+except FileNotFoundError:
+    vectorizer = None
+    classifier = None
+    print("Warning: lrmodel.pckl not found. Predictions will fail.")
 
 app = Flask(__name__)
+CORS(app)  # Enable cross-origin requests
 
 @app.route("/")
 def home():
@@ -13,6 +21,9 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    if vectorizer is None or classifier is None:
+        return jsonify({"error": "Model not loaded"}), 500
+
     # Get text input from form
     text = request.form.get("text", "").strip()
     if not text:
@@ -39,4 +50,6 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Use Render's PORT environment variable
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
