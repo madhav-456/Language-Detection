@@ -1,57 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Language Predictor</title>
+    <style>
+        /* Basic page styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container */
+        .container {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            border-color: #6c63ff;
+            outline: none;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            background-color: #6c63ff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #574fd6;
+            transform: scale(1.05);
+        }
+
+        /* Result box */
+        #result {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+            word-wrap: break-word;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Language Predictor</h1>
+
+<div class="container">
+    <h1>Language Predictor 🌐</h1>
+
     <form id="predictForm">
-        <textarea name="text" id="text" rows="4" cols="50" placeholder="Enter text here"></textarea><br><br>
+        <textarea name="text" id="text" rows="4" placeholder="Enter text here..."></textarea><br>
         <button type="submit">Predict Language</button>
     </form>
-    
-    <h2>Result:</h2>
-    <pre id="result"></pre>
 
-    <script>
-        const form = document.getElementById("predictForm");
-        const resultDiv = document.getElementById("result");
+    <div id="result"></div>
+</div>
 
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
+<script>
+    const form = document.getElementById("predictForm");
+    const resultDiv = document.getElementById("result");
 
-            const text = document.getElementById("text").value.trim();
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-            if (!text) {
-                resultDiv.innerText = "Error: Please enter some text.";
-                return;
+        const text = document.getElementById("text").value.trim();
+        if (!text) {
+            resultDiv.innerHTML = "<p style='color:red;'>Please enter some text!</p>";
+            return;
+        }
+
+        try {
+            const response = await fetch("/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `text=${encodeURIComponent(text)}`
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                resultDiv.innerHTML = `<p style='color:red;'>Error: ${data.error}</p>`;
+            } else {
+                resultDiv.innerHTML = `
+                    <p><strong>Input Text:</strong> ${data.input_text}</p>
+                    <p><strong>Predicted Language:</strong> ${data.predicted_language}</p>
+                    <p><strong>Probabilities:</strong></p>
+                    <ul>
+                        ${Object.entries(data.probabilities)
+                            .map(([lang, prob]) => `<li>${lang}: ${prob.toFixed(2)}</li>`)
+                            .join("")}
+                    </ul>
+                `;
             }
+        } catch (err) {
+            resultDiv.innerHTML = "<p style='color:red;'>Error: Could not reach server.</p>";
+            console.error(err);
+        }
+    });
+</script>
 
-            try {
-                const response = await fetch("/predict", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    },
-                    body: `text=${encodeURIComponent(text)}`
-                });
-
-                const data = await response.json();
-                console.log(data); // Debug: see API response in console
-
-                if (data.error) {
-                    resultDiv.innerText = "Error: " + data.error;
-                } else {
-                    resultDiv.innerText =
-                        `Input Text: ${data.input_text}\n` +
-                        `Predicted Language: ${data.predicted_language}\n` +
-                        `Probabilities:\n${JSON.stringify(data.probabilities, null, 2)}`;
-                }
-            } catch (err) {
-                resultDiv.innerText = "Error: Could not reach server.";
-                console.error(err);
-            }
-        });
-    </script>
 </body>
 </html>
