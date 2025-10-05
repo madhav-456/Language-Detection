@@ -1,9 +1,12 @@
 from flask import Flask, request, jsonify, render_template
-import pickle, os
+import pickle
+import os
 
+# Load the trained model
 with open("lrmodel.pckl", "rb") as f:
     model = pickle.load(f)
 
+# Initialize Flask app
 app = Flask(__name__)
 
 @app.route("/")
@@ -31,3 +34,9 @@ def predict():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ✅ This ensures the app runs properly on Render (which provides $PORT)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
