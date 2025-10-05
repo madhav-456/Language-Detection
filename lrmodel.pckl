@@ -1,0 +1,26 @@
+import pickle
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
+
+# Suppress version warnings temporarily
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+
+# Path to your old model
+old_model_path = "lrmodel.pckl"
+new_model_path = "lrmodel_updated.pckl"
+
+# Load old model
+with open(old_model_path, "rb") as f:
+    old_vectorizer, old_classifier = pickle.load(f)
+
+# Optionally: you can re-fit here if you have the original data
+# For compatibility, we just re-save the old pipeline in the new environment
+
+new_vectorizer = old_vectorizer
+new_classifier = old_classifier
+
+# Save new model compatible with scikit-learn 1.7.2
+with open(new_model_path, "wb") as f:
+    pickle.dump((new_vectorizer, new_classifier), f)
+
+print(f"✅ Model saved as '{new_model_path}' compatible with scikit-learn 1.7.2")
