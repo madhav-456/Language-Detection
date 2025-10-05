@@ -5,16 +5,20 @@ import pickle
 
 # Load dataset
 df = pd.read_csv('language_dataset.csv')
-X = df['text']  # Assuming 'text' column contains the input text
-y = df['language']  # Assuming 'language' column contains the language labels
+X = df['text']  # Column with text data
+y = df['language']  # Column with language labels
 
-# Initialize vectorizer and classifier
+# Initialize and fit TF-IDF vectorizer
 vectorizer = TfidfVectorizer()
 X_tfidf = vectorizer.fit_transform(X)
 
-classifier = LogisticRegression()
+# Initialize and train the classifier
+classifier = LogisticRegression(max_iter=500)
 classifier.fit(X_tfidf, y)
 
-# Save the fitted model and vectorizer
+# Save the fitted vectorizer and classifier together
 with open('lrmodel.pckl', 'wb') as model_file:
     pickle.dump((vectorizer, classifier), model_file)
+
+print("Model and vectorizer trained and saved successfully!")
+
